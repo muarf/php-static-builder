@@ -37,6 +37,9 @@ jobs:
           docker run --rm --platform linux/${{ matrix.arch }} \
             -v $(pwd)/dist:/output \
             php-static-builder-multi:latest
+        env:
+          PHP_VERSION: ${{ env.PHP_VERSION }}
+          BUILD_ARCH: ${{ matrix.arch }}
 
       - name: Test binary
         run: |
@@ -74,6 +77,8 @@ jobs:
           echo "Building PHP ${{ env.PHP_VERSION }} for macOS ${{ matrix.arch }}"
           chmod +x scripts/build-mac.sh
           ./scripts/build-mac.sh ${{ matrix.arch }}
+        env:
+          PHP_VERSION: ${{ env.PHP_VERSION }}
 
       - name: Test binary
         run: |
@@ -112,6 +117,8 @@ jobs:
           echo "Building PHP ${{ env.PHP_VERSION }} for Windows ${{ matrix.arch }}"
           chmod +x scripts/build-windows.sh
           ./scripts/build-windows.sh ${{ matrix.arch }}
+        env:
+          PHP_VERSION: ${{ env.PHP_VERSION }}
 
       - name: Test binary
         run: |

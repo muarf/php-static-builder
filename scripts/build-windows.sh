@@ -14,13 +14,23 @@ echo "PHP Version: $PHP_VERSION"
 echo "Architecture: $ARCH"
 echo "============================================"
 
+# Installation des dépendances
+echo "Installing dependencies..."
+choco install -y visualstudio2022buildtools
+choco install -y visualstudio2022-workload-vctools
+choco install -y php
+
 # Configuration selon l'architecture
 if [ "$ARCH" = "arm64" ]; then
     export TARGET_ARCH="aarch64-pc-windows-msvc"
     export STRIP="strip"
+    export CC="cl"
+    export CXX="cl"
 else
     export TARGET_ARCH="x86_64-pc-windows-msvc"
     export STRIP="strip"
+    export CC="cl"
+    export CXX="cl"
 fi
 
 # Création des répertoires
@@ -46,8 +56,6 @@ echo "Configuring PHP build for Windows..."
     --disable-all \
     --enable-cli \
     --enable-fpm \
-    --enable-static \
-    --disable-shared \
     --with-config-file-path=${INSTALL_DIR}/etc \
     --with-config-file-scan-dir=${INSTALL_DIR}/etc/conf.d \
     --enable-json \
@@ -58,8 +66,6 @@ echo "Configuring PHP build for Windows..."
     --enable-zts=no \
     --disable-debug \
     --disable-rpath \
-    --disable-static \
-    --enable-shared=no \
     --with-pic \
     --disable-ipv6 \
     --without-pear \
@@ -76,7 +82,7 @@ echo "Configuring PHP build for Windows..."
 
 # Compilation
 echo "Building PHP..."
-make -j$(nproc)
+make -j$(nproc 2>/dev/null || echo 4)
 
 # Installation
 echo "Installing PHP..."

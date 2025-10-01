@@ -14,17 +14,24 @@ echo "PHP Version: $PHP_VERSION"
 echo "Architecture: $ARCH"
 echo "=========================================="
 
+# Installation des dépendances
+echo "Installing dependencies..."
+brew install autoconf automake libtool pkg-config
+brew install libxml2 openssl zlib
+
 # Configuration selon l'architecture
 if [ "$ARCH" = "arm64" ]; then
     export CC="clang -arch arm64"
     export CXX="clang++ -arch arm64"
     export TARGET_ARCH="arm64-apple-darwin"
     export STRIP="strip"
+    export PKG_CONFIG_PATH="/opt/homebrew/lib/pkgconfig"
 else
     export CC="clang -arch x86_64"
     export CXX="clang++ -arch x86_64"
     export TARGET_ARCH="x86_64-apple-darwin"
     export STRIP="strip"
+    export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig"
 fi
 
 # Création des répertoires
@@ -50,8 +57,6 @@ echo "Configuring PHP build for macOS..."
     --disable-all \
     --enable-cli \
     --enable-fpm \
-    --enable-static \
-    --disable-shared \
     --with-config-file-path=${INSTALL_DIR}/etc \
     --with-config-file-scan-dir=${INSTALL_DIR}/etc/conf.d \
     --enable-json \
@@ -62,8 +67,6 @@ echo "Configuring PHP build for macOS..."
     --enable-zts=no \
     --disable-debug \
     --disable-rpath \
-    --disable-static \
-    --enable-shared=no \
     --with-pic \
     --disable-ipv6 \
     --without-pear \
@@ -80,7 +83,7 @@ echo "Configuring PHP build for macOS..."
 
 # Compilation
 echo "Building PHP..."
-make -j$(sysctl -n hw.ncpu)
+make -j$(sysctl -n hw.ncpu 2>/dev/null || echo 4)
 
 # Installation
 echo "Installing PHP..."
