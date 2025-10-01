@@ -1,23 +1,24 @@
+---
 name: Test PHP Static Binaries
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
   test-linux:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Test existing Linux binary
         run: |
-          if [ -f "dist/php-static-amd64-linux.tar.gz" ]; then
+          if [-f "dist/php-static-amd64-linux.tar.gz"]; then
             echo "Testing existing Linux binary..."
             cd dist
             tar -xzf php-static-amd64-linux.tar.gz
@@ -32,11 +33,11 @@ jobs:
 
   test-mac:
     runs-on: macos-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Test macOS build script
         run: |
           echo "Testing macOS build script..."
@@ -47,11 +48,11 @@ jobs:
 
   test-windows:
     runs-on: windows-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Test Windows build script
         run: |
           echo "Testing Windows build script..."
@@ -61,23 +62,23 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Lint YAML files
         uses: actionshub/yamllint@main
         with:
           yamllint_file_or_dir: '.github/workflows'
           yamllint_config_filepath: '.yamllint'
           yamllint_strict: true
-      
+
       - name: Lint shell scripts
         run: |
           echo "Linting shell scripts..."
           for script in scripts/*.sh; do
-            if [ -f "$script" ]; then
+            if [-f "$script"]; then
               echo "Linting $script..."
               shellcheck "$script" || echo "Warning: shellcheck not available"
             fi
