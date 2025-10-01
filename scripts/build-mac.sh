@@ -160,10 +160,14 @@ if [ -d "/output" ]; then
     cp ${ARCHIVE_NAME} /output/
     echo "Archive copied to /output/${ARCHIVE_NAME}"
 else
-    # Pour GitHub Actions
+    # Pour GitHub Actions - s'assurer qu'on est dans le bon répertoire
+    cd /Users/runner/work/php-static-builder/php-static-builder
     mkdir -p dist
-    cp ${ARCHIVE_NAME} dist/
+    cp /tmp/${ARCHIVE_NAME} dist/
     echo "Archive copied to dist/${ARCHIVE_NAME}"
+    echo "Current directory: $(pwd)"
+    echo "Contents of dist/:"
+    ls -la dist/
 fi
 
 echo "Build completed successfully!"
