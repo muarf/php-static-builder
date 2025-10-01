@@ -84,6 +84,22 @@ jobs:
         env:
           PHP_VERSION: ${{ env.PHP_VERSION }}
 
+      - name: Test binary
+        run: |
+          cd dist
+          if [ -f "php-static-${{ matrix.arch }}-macos.tar.gz" ]; then
+            echo "Testing macOS binary for ${{ matrix.arch }}..."
+            tar -xzf php-static-${{ matrix.arch }}-macos.tar.gz
+            ./bin/php --version
+            ./sbin/php-fpm --version
+            ./bin/php -r "echo 'Hello from PHP static binary on macOS!'; echo PHP_EOL;"
+            ./bin/php -m | head -10
+            echo "✅ macOS binary test completed successfully!"
+          else
+            echo "❌ No macOS binary found"
+            exit 1
+          fi
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
