@@ -40,13 +40,18 @@ jobs:
 
       - name: Test binary
         run: |
-          cd dist
-          if [ -f "php-static-${{ matrix.arch }}-linux.tar.gz" ]; then
+          if [ -d "dist" ] && [ -f "dist/php-static-${{ matrix.arch }}-linux.tar.gz" ]; then
             echo "Binary found, skipping test to avoid permission issues"
-            echo "Binary size: $(ls -lh php-static-${{ matrix.arch }}-linux.tar.gz | awk '{print $5}')"
+            echo "Binary size: $(ls -lh dist/php-static-${{ matrix.arch }}-linux.tar.gz | awk '{print $5}')"
             echo "Binary exists: ✅"
           else
             echo "No binary found, skipping test"
+            echo "Contents of current directory:"
+            ls -la
+            if [ -d "dist" ]; then
+              echo "Contents of dist/:"
+              ls -la dist/
+            fi
           fi
 
       - name: Upload artifacts
@@ -82,13 +87,18 @@ jobs:
 
       - name: Test binary
         run: |
-          cd dist
-          if [ -f "php-static-${{ matrix.arch }}-macos.tar.gz" ]; then
+          if [ -d "dist" ] && [ -f "dist/php-static-${{ matrix.arch }}-macos.tar.gz" ]; then
             echo "Binary found, skipping test to avoid Bus error"
-            echo "Binary size: $(ls -lh php-static-${{ matrix.arch }}-macos.tar.gz | awk '{print $5}')"
+            echo "Binary size: $(ls -lh dist/php-static-${{ matrix.arch }}-macos.tar.gz | awk '{print $5}')"
             echo "Binary exists: ✅"
           else
-            echo "❌ No macOS binary found"
+            echo "❌ No macOS binary found in dist/"
+            echo "Contents of current directory:"
+            ls -la
+            if [ -d "dist" ]; then
+              echo "Contents of dist/:"
+              ls -la dist/
+            fi
             exit 1
           fi
 
