@@ -92,9 +92,9 @@ make install
 # Optimisation des binaires
 echo "Optimizing binaries..."
 cd ${INSTALL_DIR}/bin
-${STRIP} --strip-all --remove-section=.comment --remove-section=.note php
+${STRIP} -S -x php
 cd ${INSTALL_DIR}/sbin
-${STRIP} --strip-all --remove-section=.comment --remove-section=.note php-fpm
+${STRIP} -S -x php-fpm
 
 # Création de la configuration PHP optimisée
 echo "Creating optimized PHP configuration..."
