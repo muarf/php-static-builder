@@ -1,0 +1,265 @@
+name: Build PHP Static Binaries (Multi-Platform)
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [ published ]
+  workflow_dispatch:
+
+env:
+  PHP_VERSION: "8.2.14"
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [amd64, arm64]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      
+      - name: Build PHP Static Binary (Linux)
+        run: |
+          echo "Building PHP ${{ env.PHP_VERSION }} for Linux ${{ matrix.arch }}"
+          make -f Makefile.multi docker-build-multi
+          docker run --rm --platform linux/${{ matrix.arch }} \
+            -v $(pwd)/dist:/output \
+            php-static-builder-multi:latest
+      
+      - name: Test binary
+        run: |
+          cd dist
+          tar -xzf php-static-${{ matrix.arch }}-linux.tar.gz
+          ./bin/php --version
+          ./sbin/php-fpm --version
+          ./bin/php -r "echo 'Hello from PHP static binary!'; echo PHP_EOL;"
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: php-static-linux-${{ matrix.arch }}
+          path: dist/php-static-${{ matrix.arch }}-linux.tar.gz
+          retention-days: 30
+
+  build-macos:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        arch: [amd64, arm64]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install dependencies
+        run: |
+          echo "Installing build dependencies for macOS ${{ matrix.arch }}"
+          brew install autoconf automake libtool pkg-config
+          brew install libxml2 openssl zlib
+      
+      - name: Build PHP Static Binary (macOS)
+        run: |
+          echo "Building PHP ${{ env.PHP_VERSION }} for macOS ${{ matrix.arch }}"
+          chmod +x scripts/build-mac.sh
+          ./scripts/build-mac.sh ${{ matrix.arch }}
+      
+      - name: Test binary
+        run: |
+          cd dist
+          tar -xzf php-static-${{ matrix.arch }}-macos.tar.gz
+          ./bin/php --version
+          ./sbin/php-fpm --version
+          ./bin/php -r "echo 'Hello from PHP static binary!'; echo PHP_EOL;"
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: php-static-macos-${{ matrix.arch }}
+          path: dist/php-static-${{ matrix.arch }}-macos.tar.gz
+          retention-days: 30
+
+  build-windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        arch: [amd64, arm64]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install dependencies
+        run: |
+          echo "Installing build dependencies for Windows ${{ matrix.arch }}"
+          choco install -y visualstudio2022buildtools
+          choco install -y visualstudio2022-workload-vctools
+          choco install -y php
+      
+      - name: Build PHP Static Binary (Windows)
+        run: |
+          echo "Building PHP ${{ env.PHP_VERSION }} for Windows ${{ matrix.arch }}"
+          chmod +x scripts/build-windows.sh
+          ./scripts/build-windows.sh ${{ matrix.arch }}
+      
+      - name: Test binary
+        run: |
+          cd dist
+          tar -xzf php-static-${{ matrix.arch }}-windows.tar.gz
+          ./bin/php.exe --version
+          ./sbin/php-fpm.exe --version
+          ./bin/php.exe -r "echo 'Hello from PHP static binary!'; echo PHP_EOL;"
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: php-static-windows-${{ matrix.arch }}
+          path: dist/php-static-${{ matrix.arch }}-windows.tar.gz
+          retention-days: 30
+
+  test-binaries:
+    needs: [build-linux, build-macos, build-windows]
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+      
+      - name: Test Linux binaries
+        run: |
+          echo "Testing Linux binaries..."
+          for arch in amd64 arm64; do
+            if [ -f "php-static-linux-$arch/php-static-$arch-linux.tar.gz" ]; then
+              echo "Testing Linux $arch..."
+              cd "php-static-linux-$arch"
+              tar -xzf php-static-$arch-linux.tar.gz
+              ./bin/php --version
+              ./sbin/php-fpm --version
+              ./bin/php -r "echo 'Linux $arch: OK'; echo PHP_EOL;"
+              cd ..
+            fi
+          done
+      
+      - name: Test macOS binaries
+        run: |
+          echo "Testing macOS binaries..."
+          for arch in amd64 arm64; do
+            if [ -f "php-static-macos-$arch/php-static-$arch-macos.tar.gz" ]; then
+              echo "Testing macOS $arch..."
+              cd "php-static-macos-$arch"
+              tar -xzf php-static-$arch-macos.tar.gz
+              ./bin/php --version
+              ./sbin/php-fpm --version
+              ./bin/php -r "echo 'macOS $arch: OK'; echo PHP_EOL;"
+              cd ..
+            fi
+          done
+      
+      - name: Test Windows binaries
+        run: |
+          echo "Testing Windows binaries..."
+          for arch in amd64 arm64; do
+            if [ -f "php-static-windows-$arch/php-static-$arch-windows.tar.gz" ]; then
+              echo "Testing Windows $arch..."
+              cd "php-static-windows-$arch"
+              tar -xzf php-static-$arch-windows.tar.gz
+              ./bin/php.exe --version
+              ./sbin/php-fpm.exe --version
+              ./bin/php.exe -r "echo 'Windows $arch: OK'; echo PHP_EOL;"
+              cd ..
+            fi
+          done
+
+  release:
+    needs: [build-linux, build-macos, build-windows, test-binaries]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+      
+      - name: Prepare release files
+        run: |
+          mkdir -p release
+          cp php-static-linux-amd64/php-static-amd64-linux.tar.gz release/ || true
+          cp php-static-linux-arm64/php-static-arm64-linux.tar.gz release/ || true
+          cp php-static-macos-amd64/php-static-amd64-macos.tar.gz release/ || true
+          cp php-static-macos-arm64/php-static-arm64-macos.tar.gz release/ || true
+          cp php-static-windows-amd64/php-static-amd64-windows.tar.gz release/ || true
+          cp php-static-windows-arm64/php-static-arm64-windows.tar.gz release/ || true
+          
+          echo "Release files prepared:"
+          ls -la release/
+      
+      - name: Create release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: release/*
+          body: |
+            ## PHP Static Binaries ${{ env.PHP_VERSION }}
+            
+            ### Supported Platforms
+            - **Linux**: x86_64, ARM64
+            - **macOS**: Intel, Apple Silicon
+            - **Windows**: x86_64, ARM64
+            
+            ### Usage
+            ```bash
+            # Extract archive
+            tar -xzf php-static-<arch>-<platform>.tar.gz
+            
+            # Use PHP CLI
+            ./bin/php --version
+            ./bin/php -r "echo 'Hello World!';"
+            
+            # Use PHP-FPM
+            ./sbin/php-fpm --version
+            ```
+            
+            ### Contents
+            - `./bin/php` - PHP CLI binary
+            - `./sbin/php-fpm` - PHP-FPM binary
+            - `./lib/php/` - PHP libraries and extensions
+            - `./etc/` - Configuration files
+            - Development tools: `phpize`, `php-config`, `phar`
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  summary:
+    needs: [build-linux, build-macos, build-windows, test-binaries]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Build Summary
+        run: |
+          echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Platform | Architecture | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Linux | x86_64 | ${{ needs.build-linux.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Linux | ARM64 | ${{ needs.build-linux.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| macOS | Intel | ${{ needs.build-macos.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| macOS | Apple Silicon | ${{ needs.build-macos.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Windows | x86_64 | ${{ needs.build-windows.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Windows | ARM64 | ${{ needs.build-windows.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**PHP Version:** ${{ env.PHP_VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Build Date:** $(date)" >> $GITHUB_STEP_SUMMARY

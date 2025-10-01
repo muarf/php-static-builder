@@ -1,0 +1,116 @@
+# Makefile pour PHP Static Binaries Builder (Multi-Platform)
+
+.PHONY: help build-linux build-mac build-all test clean docker-build-multi
+
+# Variables
+PHP_VERSION ?= 8.2.14
+DOCKER_IMAGE ?= php-static-builder-multi
+
+# Aide
+help:
+	@echo "PHP Static Binaries Builder (Multi-Platform)"
+	@echo ""
+	@echo "Commandes disponibles:"
+	@echo "  build-linux     - Construire les binaires Linux (x86_64 + ARM64)"
+	@echo "  build-mac       - Construire les binaires macOS (x86_64 + ARM64)"
+	@echo "  build-all       - Construire tous les binaires"
+	@echo "  test            - Exécuter tous les tests"
+	@echo "  docker-build-multi - Construire l'image Docker multi-plateforme"
+	@echo "  clean           - Nettoyer les fichiers temporaires"
+	@echo "  help            - Afficher cette aide"
+	@echo ""
+	@echo "Variables:"
+	@echo "  PHP_VERSION     - Version de PHP à compiler (défaut: 8.2.14)"
+	@echo "  DOCKER_IMAGE    - Nom de l'image Docker (défaut: php-static-builder-multi)"
+
+# Construction des binaires Linux
+build-linux: docker-build-multi
+	@echo "Construction des binaires PHP Linux..."
+	@mkdir -p dist
+	@echo "Construction Linux x86_64..."
+	@docker run --rm -v $(PWD)/dist:/output $(DOCKER_IMAGE):latest
+	@echo "⚠️  Note: ARM64 nécessite Docker Buildx ou un hôte ARM64"
+
+# Construction des binaires macOS (nécessite un hôte macOS ou cross-compilation)
+build-mac:
+	@echo "Construction des binaires PHP macOS..."
+	@echo "⚠️  Note: La compilation macOS nécessite un hôte macOS ou un cross-compiler"
+	@echo "Pour l'instant, seuls les binaires Linux sont supportés"
+	@echo "Pour macOS, utilisez:"
+	@echo "  - Un Mac avec Xcode installé"
+	@echo "  - Un cross-compiler macOS"
+	@echo "  - GitHub Actions avec runners macOS"
+
+# Construction de tous les binaires
+build-all: build-linux
+	@echo "Construction terminée ✓"
+	@echo "Binaires disponibles:"
+	@ls -la dist/
+
+# Tests
+test:
+	@echo "Exécution des tests..."
+	@if [ -f "dist/php-static-amd64-linux.tar.gz" ]; then \
+		echo "Test du binaire Linux x86_64..."; \
+		cd dist && tar -xzf php-static-amd64-linux.tar.gz; \
+		./bin/php --version; \
+		rm -rf bin sbin lib etc var tmp; \
+	fi
+	@if [ -f "dist/php-static-arm64-linux.tar.gz" ]; then \
+		echo "Test du binaire Linux ARM64..."; \
+		cd dist && tar -xzf php-static-arm64-linux.tar.gz; \
+		./bin/php --version; \
+		rm -rf bin sbin lib etc var tmp; \
+	fi
+
+# Construction de l'image Docker multi-plateforme
+docker-build-multi:
+	@echo "Construction de l'image Docker multi-plateforme..."
+	@echo "⚠️  Docker Buildx non disponible, utilisation de docker build standard"
+	@docker build -t $(DOCKER_IMAGE):latest -f Dockerfile.multi .
+
+# Nettoyage
+clean:
+	@echo "Nettoyage des fichiers temporaires..."
+	@rm -rf dist/
+	@rm -rf /tmp/php-build/
+	@rm -rf /tmp/php-static/
+	@docker rmi $(DOCKER_IMAGE):latest 2>/dev/null || true
+
+# Validation de l'environnement
+validate-env:
+	@echo "Validation de l'environnement..."
+	@command -v docker >/dev/null 2>&1 || (echo "Docker requis" && exit 1)
+	@command -v docker buildx >/dev/null 2>&1 || (echo "Docker Buildx requis" && exit 1)
+	@echo "Environnement validé ✓"
+
+# Installation des dépendances
+install-deps:
+	@echo "Installation des dépendances de développement..."
+	@if ! command -v docker >/dev/null 2>&1; then \
+		echo "Docker n'est pas installé. Veuillez l'installer d'abord."; \
+		exit 1; \
+	fi
+	@if ! docker buildx version >/dev/null 2>&1; then \
+		echo "Docker Buildx n'est pas disponible. Veuillez l'activer."; \
+		exit 1; \
+	fi
+
+# Configuration Docker Buildx
+setup-buildx:
+	@echo "Configuration de Docker Buildx..."
+	@docker buildx create --name php-builder --use 2>/dev/null || docker buildx use php-builder
+	@docker buildx inspect --bootstrap
+
+# Release (simulation locale)
+release-test:
+	@echo "Test de release local..."
+	@make clean
+	@make build-all
+	@make test
+	@echo "Release test terminé ✓"
+
+# Développement
+dev-setup: install-deps validate-env setup-buildx
+	@echo "Configuration de l'environnement de développement..."
+	@echo "Environnement prêt pour le développement ✓"

@@ -1,0 +1,72 @@
+# Dockerfile multi-plateforme pour PHP statique
+# Support: Linux x86_64, Linux ARM64, macOS x86_64, macOS ARM64
+
+ARG PHP_VERSION=8.2.14
+ARG TARGET_PLATFORM=linux/amd64
+
+# Stage pour Linux
+FROM ubuntu:22.04 as linux-builder
+
+ARG PHP_VERSION
+ARG BUILD_ARCH=x86_64
+ARG TARGET_ARCH=x86_64-linux-gnu
+
+# Variables d'environnement
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PHP_VERSION=${PHP_VERSION}
+ENV TARGET_ARCH=${TARGET_ARCH}
+ENV BUILD_ARCH=${BUILD_ARCH}
+ENV BUILD_DIR=/tmp/php-build
+ENV INSTALL_DIR=/tmp/php-static
+
+# Mise à jour du système et installation des dépendances
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    wget \
+    pkg-config \
+    autoconf \
+    automake \
+    libtool \
+    bison \
+    re2c \
+    libxml2-dev \
+    libssl-dev \
+    libcurl4-openssl-dev \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    libonig-dev \
+    libzip-dev \
+    libsqlite3-dev \
+    libreadline-dev \
+    libedit-dev \
+    libc6-dev \
+    libgcc-s1 \
+    zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Installation des outils de cross-compilation si nécessaire
+RUN if [ "${BUILD_ARCH}" = "aarch64" ]; then \
+        apt-get update && apt-get install -y \
+        gcc-aarch64-linux-gnu \
+        g++-aarch64-linux-gnu \
+        && rm -rf /var/lib/apt/lists/*; \
+    fi
+
+# Copie des scripts de build
+COPY scripts/ /tmp/scripts/
+RUN chmod +x /tmp/scripts/*.sh
+
+# Création des répertoires de travail
+RUN mkdir -p ${BUILD_DIR} ${INSTALL_DIR}
+
+# Copie de la configuration PHP
+COPY config/ /tmp/config/
+
+# Point d'entrée
+ENTRYPOINT ["/tmp/scripts/build-multi.sh"]
+
+# Stage pour macOS (nécessite une image macOS ou cross-compilation)
+# Note: Ceci nécessiterait une image macOS ou un cross-compiler
+# FROM --platform=$TARGET_PLATFORM alpine:3.18 as macos-builder
+# ... configuration pour macOS ...

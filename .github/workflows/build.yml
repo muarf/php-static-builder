@@ -1,0 +1,140 @@
+name: Build PHP Static Binaries
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  release:
+    types: [ published ]
+
+env:
+  PHP_VERSION: "8.3.0"
+  BUILD_DIR: "/tmp/php-build"
+
+jobs:
+  build:
+    name: Build for ${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [x86_64, aarch64]
+        include:
+          - arch: x86_64
+            target: x86_64-linux-gnu
+            docker_platform: linux/amd64
+          - arch: aarch64
+            target: aarch64-linux-gnu
+            docker_platform: linux/arm64
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build PHP binary
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        platforms: ${{ matrix.docker_platform }}
+        push: false
+        load: true
+        tags: php-builder:${{ matrix.arch }}
+        build-args: |
+          PHP_VERSION=${{ env.PHP_VERSION }}
+          TARGET_ARCH=${{ matrix.target }}
+          BUILD_ARCH=${{ matrix.arch }}
+
+    - name: Extract binary from container
+      run: |
+        mkdir -p dist
+        docker create --name php-container php-builder:${{ matrix.arch }}
+        docker cp php-container:/tmp/php-static.tar.gz ./dist/php-static-${{ matrix.arch }}-linux.tar.gz
+        docker rm php-container
+
+    - name: Test binary
+      run: |
+        cd dist
+        tar -xzf php-static-${{ matrix.arch }}-linux.tar.gz
+        ./php-static/bin/php --version
+        ./php-static/bin/php-fpm --version
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: php-static-${{ matrix.arch }}
+        path: dist/php-static-${{ matrix.arch }}-linux.tar.gz
+        retention-days: 30
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: ./artifacts
+
+    - name: Prepare release assets
+      run: |
+        mkdir -p release-assets
+        find ./artifacts -name "*.tar.gz" -exec cp {} ./release-assets/ \;
+        ls -la ./release-assets/
+
+    - name: Upload release assets
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./release-assets/php-static-x86_64-linux.tar.gz
+        asset_name: php-static-x86_64-linux.tar.gz
+        asset_content_type: application/gzip
+
+    - name: Upload release assets (ARM64)
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./release-assets/php-static-aarch64-linux.tar.gz
+        asset_name: php-static-aarch64-linux.tar.gz
+        asset_content_type: application/gzip
+
+  test:
+    name: Test Binaries
+    needs: build
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: ./test-binaries
+
+    - name: Test x86_64 binary
+      run: |
+        cd test-binaries/php-static-x86_64
+        tar -xzf php-static-x86_64-linux.tar.gz
+        ./php-static/bin/php -v
+        ./php-static/bin/php-fpm -v
+        ./php-static/bin/php -m | head -10
+
+    - name: Test aarch64 binary
+      run: |
+        cd test-binaries/php-static-aarch64
+        tar -xzf php-static-aarch64-linux.tar.gz
+        ./php-static/bin/php -v
+        ./php-static/bin/php-fpm -v
+        ./php-static/bin/php -m | head -10

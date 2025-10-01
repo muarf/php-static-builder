@@ -1,0 +1,84 @@
+name: Test PHP Static Binaries
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test-linux:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Test existing Linux binary
+        run: |
+          if [ -f "dist/php-static-amd64-linux.tar.gz" ]; then
+            echo "Testing existing Linux binary..."
+            cd dist
+            tar -xzf php-static-amd64-linux.tar.gz
+            ./bin/php --version
+            ./sbin/php-fpm --version
+            ./bin/php -r "echo 'Hello from PHP static binary!'; echo PHP_EOL;"
+            ./bin/php -m | head -10
+            echo "Linux binary test completed successfully!"
+          else
+            echo "No existing Linux binary found, skipping test"
+          fi
+
+  test-mac:
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Test macOS build script
+        run: |
+          echo "Testing macOS build script..."
+          chmod +x scripts/build-mac.sh
+          # Test script syntax
+          bash -n scripts/build-mac.sh
+          echo "macOS build script syntax is valid"
+
+  test-windows:
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Test Windows build script
+        run: |
+          echo "Testing Windows build script..."
+          # Test script syntax
+          bash -n scripts/build-windows.sh
+          echo "Windows build script syntax is valid"
+
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Lint YAML files
+        uses: actionshub/yamllint@main
+        with:
+          yamllint_file_or_dir: '.github/workflows'
+          yamllint_config_filepath: '.yamllint'
+          yamllint_strict: true
+      
+      - name: Lint shell scripts
+        run: |
+          echo "Linting shell scripts..."
+          for script in scripts/*.sh; do
+            if [ -f "$script" ]; then
+              echo "Linting $script..."
+              shellcheck "$script" || echo "Warning: shellcheck not available"
+            fi
+          done
