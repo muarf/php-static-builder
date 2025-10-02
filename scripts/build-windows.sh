@@ -61,6 +61,7 @@ echo "Configuring PHP build for Windows..."
     --enable-json \
     --enable-hash \
     --enable-phar \
+    --enable-session \
     --with-libxml \
     --with-zlib \
     --enable-zts=no \
