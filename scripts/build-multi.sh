@@ -77,6 +77,7 @@ fi
     --with-config-file-scan-dir=${INSTALL_DIR}/etc/conf.d \
     --enable-json \
     --enable-hash \
+    --enable-session \
     --enable-sqlite3 \
     --enable-zip \
     --enable-curl \

@@ -61,6 +61,7 @@ echo "Configuring PHP build for macOS..."
     --with-config-file-scan-dir=${INSTALL_DIR}/etc/conf.d \
     --enable-json \
     --enable-hash \
+    --enable-session \
     --enable-phar \
     --with-libxml \
     --with-zlib \
