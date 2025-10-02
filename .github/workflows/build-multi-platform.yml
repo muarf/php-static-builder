@@ -145,7 +145,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
 
       - name: Test Linux binaries
         run: |
@@ -202,7 +202,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
 
       - name: Prepare release files
         run: |
