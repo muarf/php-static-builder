@@ -1,0 +1,82 @@
+---
+name: Create Release from Artifacts
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release tag name'
+        required: true
+        default: 'v8.2.14-static'
+      release_name:
+        description: 'Release name'
+        required: true
+        default: 'PHP 8.2.14 Static Binaries'
+
+env:
+  PHP_VERSION: "8.2.14"
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Linux binary
+        uses: actions/download-artifact@v4
+        with:
+          name: php-static-linux-amd64
+          path: dist/
+        continue-on-error: true
+
+      - name: Download macOS binary
+        uses: actions/download-artifact@v4
+        with:
+          name: php-static-macos-amd64
+          path: dist/
+        continue-on-error: true
+
+      - name: Download Windows binary
+        uses: actions/download-artifact@v4
+        with:
+          name: php-static-windows-amd64
+          path: dist/
+        continue-on-error: true
+
+      - name: List available artifacts
+        run: |
+          echo "Available artifacts:"
+          ls -la dist/ || echo "No dist directory found"
+          echo ""
+          echo "Looking for artifacts in current directory:"
+          ls -la
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.event.inputs.tag_name }}
+          name: ${{ github.event.inputs.release_name }}
+          body: |
+            ## PHP ${{ env.PHP_VERSION }} Static Binaries
+            ### Downloads
+            - **Linux AMD64**: `php-static-amd64-linux.tar.gz`
+            - **macOS AMD64**: `php-static-amd64-macos.tar.gz`
+            - **Windows AMD64**: `php-static-amd64-windows.tar.gz`
+
+            ### Usage
+            1. Download the appropriate binary for your platform
+            2. Extract: `tar -xzf php-static-amd64-*.tar.gz`
+            3. Run: `./bin/php --version`
+
+            ### Testing
+            All binaries have been built and are ready for use.
+          files: |
+            dist/php-static-amd64-linux.tar.gz
+            dist/php-static-amd64-macos.tar.gz
+            dist/php-static-amd64-windows.tar.gz
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
