@@ -62,16 +62,49 @@ echo "Configuring PHP build for Windows..."
     --enable-hash \
     --enable-phar \
     --enable-session \
+    --enable-opcache \
+    --enable-mysqlnd \
+    --enable-pdo \
+    --enable-xml \
+    --enable-bz2 \
+    --enable-calendar \
+    --enable-ctype \
+    --enable-curl \
+    --enable-dom \
+    --enable-exif \
+    --enable-ffi \
+    --enable-fileinfo \
+    --enable-ftp \
+    --enable-gd \
+    --enable-gettext \
+    --enable-iconv \
+    --enable-intl \
+    --enable-mbstring \
+    --enable-mcrypt \
+    --enable-mysqli \
+    --enable-pdo-mysql \
+    --enable-pdo-sqlite \
+    --enable-posix \
+    --enable-readline \
+    --enable-shmop \
+    --enable-simplexml \
+    --enable-sockets \
+    --enable-sqlite3 \
+    --enable-sysvmsg \
+    --enable-sysvsem \
     --with-libxml \
     --with-zlib \
+    --with-gd \
+    --with-jpeg \
+    --with-png \
+    --with-freetype \
+    --with-openssl \
     --enable-zts=no \
     --disable-debug \
     --disable-rpath \
     --with-pic \
     --disable-ipv6 \
     --without-pear \
-    --without-iconv \
-    --without-gettext \
     --disable-cgi \
     --disable-phpdbg \
     --enable-embed=no \

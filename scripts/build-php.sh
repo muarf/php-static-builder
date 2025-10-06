@@ -61,46 +61,54 @@ fi
     --with-config-file-scan-dir=${INSTALL_DIR}/etc/conf.d \
     --enable-json \
     --enable-hash \
+    --enable-phar \
     --enable-session \
-    --enable-filter \
-    --enable-tokenizer \
     --enable-opcache \
-    --enable-fileinfo \
-    --enable-mbstring \
-    --enable-ctype \
+    --enable-mysqlnd \
     --enable-pdo \
-    --with-pdo-sqlite \
-    --enable-sqlite3 \
-    --enable-zip \
-    --with-zlib \
-    --enable-gd \
-    --with-freetype \
-    --with-jpeg \
-    --enable-curl \
-    --with-openssl \
-    --enable-openssl \
-    --enable-ftp \
-    --enable-sockets \
-    --with-zip \
-    --enable-bcmath \
+    --enable-xml \
+    --enable-bz2 \
     --enable-calendar \
+    --enable-ctype \
+    --enable-curl \
+    --enable-dom \
     --enable-exif \
+    --enable-ffi \
+    --enable-fileinfo \
+    --enable-ftp \
+    --enable-gd \
+    --enable-gettext \
+    --enable-iconv \
+    --enable-intl \
+    --enable-mbstring \
+    --enable-mcrypt \
+    --enable-mysqli \
+    --enable-pdo-mysql \
+    --enable-pdo-sqlite \
     --enable-posix \
+    --enable-readline \
+    --enable-shmop \
+    --enable-simplexml \
+    --enable-sockets \
+    --enable-sqlite3 \
+    --enable-sysvmsg \
     --enable-sysvsem \
     --enable-sysvshm \
-    --enable-sysvmsg \
-    --enable-shmop \
+    --enable-filter \
+    --enable-tokenizer \
+    --enable-zip \
+    --with-zlib \
+    --with-freetype \
+    --with-jpeg \
+    --with-openssl \
+    --enable-openssl \
+    --with-zip \
+    --enable-bcmath \
     --enable-pcntl \
-    --enable-readline \
-    --enable-simplexml \
-    --enable-xml \
     --enable-xmlreader \
     --enable-xmlwriter \
-    --enable-dom \
     --enable-libxml \
-    --enable-phar \
     --with-libxml \
-    --with-zlib \
     --enable-zts=no \
     --disable-debug \
     --disable-rpath \
@@ -109,8 +117,6 @@ fi
     --with-pic \
     --disable-ipv6 \
     --without-pear \
-    --without-iconv \
-    --without-gettext \
     --disable-cgi \
     --disable-phpdbg \
     --enable-embed=no \
