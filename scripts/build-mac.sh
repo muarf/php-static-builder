@@ -59,52 +59,54 @@ echo "Configuring PHP build for macOS..."
     --enable-fpm \
     --with-config-file-path=${INSTALL_DIR}/etc \
     --with-config-file-scan-dir=${INSTALL_DIR}/etc/conf.d \
-    --enable-json \
-    --enable-hash \
     --enable-phar \
     --enable-session \
     --enable-opcache \
     --enable-mysqlnd \
     --enable-pdo \
+    --with-pdo-mysql=mysqlnd \
+    --with-pdo-sqlite \
+    --enable-dom \
     --enable-xml \
-    --enable-bz2 \
+    --enable-simplexml \
+    --enable-xmlreader \
+    --enable-xmlwriter \
+    --with-libxml \
+    --with-bz2 \
     --enable-calendar \
     --enable-ctype \
-    --enable-curl \
-    --enable-dom \
+    --with-curl \
     --enable-exif \
-    --enable-ffi \
+    --with-ffi \
     --enable-fileinfo \
     --enable-ftp \
-    --enable-gd \
-    --enable-gettext \
-    --enable-iconv \
-    --enable-intl \
+    --with-gd \
+    --with-external-gd \
+    --with-freetype \
+    --with-jpeg \
     --enable-mbstring \
-    --enable-mcrypt \
-    --enable-mysqli \
-    --enable-pdo-mysql \
-    --enable-pdo-sqlite \
+    --with-mysqli=mysqlnd \
     --enable-posix \
-    --enable-readline \
+    --with-readline \
     --enable-shmop \
-    --enable-simplexml \
     --enable-sockets \
-    --enable-sqlite3 \
+    --with-sqlite3 \
     --enable-sysvmsg \
     --enable-sysvsem \
-    --with-libxml \
+    --enable-sysvshm \
+    --with-zip \
     --with-zlib \
-    --with-gd \
-    --with-jpeg \
-    --with-png \
-    --with-freetype \
     --with-openssl \
+    --with-iconv \
+    --with-gettext \
+    --enable-pcntl \
+    --enable-bcmath \
+    --enable-filter \
+    --enable-tokenizer \
     --enable-zts=no \
     --disable-debug \
     --disable-rpath \
     --with-pic \
-    --disable-ipv6 \
     --without-pear \
     --disable-cgi \
     --disable-phpdbg \

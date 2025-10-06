@@ -71,70 +71,66 @@ fi
     --disable-all \
     --enable-cli \
     --enable-fpm \
-    --enable-static \
-    --disable-shared \
     --with-config-file-path=${INSTALL_DIR}/etc \
     --with-config-file-scan-dir=${INSTALL_DIR}/etc/conf.d \
-    --enable-json \
-    --enable-hash \
     --enable-phar \
     --enable-session \
     --enable-opcache \
     --enable-mysqlnd \
     --enable-pdo \
+    --with-pdo-mysql=mysqlnd \
+    --with-pdo-sqlite \
+    --enable-dom \
     --enable-xml \
-    --enable-bz2 \
+    --enable-simplexml \
+    --enable-xmlreader \
+    --enable-xmlwriter \
+    --with-libxml \
+    --with-bz2 \
     --enable-calendar \
     --enable-ctype \
-    --enable-curl \
-    --enable-dom \
+    --with-curl \
     --enable-exif \
-    --enable-ffi \
+    --with-ffi \
     --enable-fileinfo \
     --enable-ftp \
-    --enable-gd \
-    --enable-gettext \
-    --enable-iconv \
-    --enable-intl \
+    --with-gd \
+    --with-external-gd \
+    --with-freetype \
+    --with-jpeg \
     --enable-mbstring \
-    --enable-mcrypt \
-    --enable-mysqli \
-    --enable-pdo-mysql \
-    --enable-pdo-sqlite \
+    --with-mysqli=mysqlnd \
     --enable-posix \
-    --enable-readline \
+    --with-readline \
     --enable-shmop \
-    --enable-simplexml \
     --enable-sockets \
-    --enable-sqlite3 \
+    --with-sqlite3 \
     --enable-sysvmsg \
     --enable-sysvsem \
-    --enable-zip \
-    --enable-openssl \
-    --enable-libxml \
-    --with-libxml \
+    --enable-sysvshm \
+    --with-zip \
     --with-zlib \
-    --with-gd \
-    --with-jpeg \
-    --with-png \
-    --with-freetype \
     --with-openssl \
+    --enable-intl \
+    --with-iconv \
+    --with-gettext \
+    --enable-pcntl \
+    --enable-bcmath \
+    --enable-filter \
+    --enable-tokenizer \
     --enable-zts=no \
     --disable-debug \
     --disable-rpath \
-    --disable-static \
-    --enable-shared=no \
-    --with-pic \
-    --disable-ipv6 \
     --without-pear \
     --disable-cgi \
     --disable-phpdbg \
     --enable-embed=no \
     --disable-zend-signals \
     --enable-zend-max-execution-timers \
-    CFLAGS="-Os -ffunction-sections -fdata-sections -fvisibility=hidden -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1 -D_GNU_SOURCE" \
-    CXXFLAGS="-Os -ffunction-sections -fdata-sections -fvisibility=hidden -D_GNU_SOURCE" \
-    LDFLAGS="-Wl,--gc-sections -Wl,--strip-all -static-libgcc -static-libstdc++"
+    CFLAGS="-Os -ffunction-sections -fdata-sections -fvisibility=hidden -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1 -D_GNU_SOURCE -static" \
+    CXXFLAGS="-Os -ffunction-sections -fdata-sections -fvisibility=hidden -D_GNU_SOURCE -static" \
+    LDFLAGS="-Wl,--gc-sections -Wl,--strip-all -static -static-libgcc -static-libstdc++" \
+    LIBS="-ldl -lpthread"
 
 # Compilation
 echo "Building PHP..."
