@@ -61,7 +61,8 @@ RUN wget -q "https://www.php.net/distributions/php-${PHP_VERSION}.tar.gz" && \
 WORKDIR ${BUILD_DIR}/php-${PHP_VERSION}
 
 # Configuration pour un build 100% statique
-RUN PKG_CONFIG="pkg-config --static" \
+RUN LIBS="-lbz2 -lz -lssl -lcrypto -lsqlite3 -lxml2 -llzma -lreadline -lncursesw -lpthread -ldl -lm" \
+    PKG_CONFIG="pkg-config --static" \
     ./configure \
     --prefix=${INSTALL_DIR} \
     --disable-all \
@@ -87,7 +88,6 @@ RUN PKG_CONFIG="pkg-config --static" \
     --with-bz2 \
     --enable-calendar \
     --enable-ctype \
-    --with-curl \
     --enable-exif \
     --enable-fileinfo \
     --enable-ftp \
@@ -104,7 +104,6 @@ RUN PKG_CONFIG="pkg-config --static" \
     --with-zip \
     --with-zlib \
     --with-openssl \
-    --with-gettext \
     --enable-pcntl \
     --enable-bcmath \
     --enable-filter \
