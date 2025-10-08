@@ -40,13 +40,10 @@ RUN apk add --no-cache \
     freetype-dev \
     freetype-static \
     oniguruma-dev \
-    oniguruma-static \
     libzip-dev \
-    libzip-static \
     icu-dev \
     icu-static \
     libffi-dev \
-    libffi-static \
     gettext-dev \
     gettext-static
 
@@ -136,57 +133,25 @@ RUN strip --strip-all ${INSTALL_DIR}/bin/php && \
 
 # Création de la configuration PHP
 RUN mkdir -p ${INSTALL_DIR}/etc/conf.d && \
-    cat > ${INSTALL_DIR}/etc/php.ini << 'EOF'
-[PHP]
-engine = On
-short_open_tag = Off
-precision = 14
-output_buffering = 4096
-zlib.output_compression = Off
-implicit_flush = Off
-serialize_precision = -1
-disable_functions =
-disable_classes =
-zend.enable_gc = On
-zend.exception_ignore_args = On
-expose_php = Off
-max_execution_time = 30
-max_input_time = 60
-memory_limit = 128M
-error_reporting = E_ALL & ~E_DEPRECATED & ~E_STRICT
-display_errors = Off
-display_startup_errors = Off
-log_errors = On
-variables_order = "GPCS"
-request_order = "GP"
-register_argc_argv = Off
-auto_globals_jit = On
-post_max_size = 8M
-default_mimetype = "text/html"
-default_charset = "UTF-8"
-file_uploads = On
-upload_max_filesize = 2M
-max_file_uploads = 20
-allow_url_fopen = On
-allow_url_include = Off
-default_socket_timeout = 60
-
-[opcache]
-opcache.enable=1
-opcache.enable_cli=1
-opcache.memory_consumption=128
-opcache.interned_strings_buffer=8
-opcache.max_accelerated_files=4000
-opcache.revalidate_freq=2
-opcache.fast_shutdown=1
-
-[Date]
-date.timezone = UTC
-
-[mbstring]
-mbstring.language = neutral
-mbstring.internal_encoding = UTF-8
-EOF
+    echo '[PHP]' > ${INSTALL_DIR}/etc/php.ini && \
+    echo 'engine = On' >> ${INSTALL_DIR}/etc/php.ini && \
+    echo 'short_open_tag = Off' >> ${INSTALL_DIR}/etc/php.ini && \
+    echo 'precision = 14' >> ${INSTALL_DIR}/etc/php.ini && \
+    echo 'output_buffering = 4096' >> ${INSTALL_DIR}/etc/php.ini && \
+    echo 'memory_limit = 128M' >> ${INSTALL_DIR}/etc/php.ini && \
+    echo 'error_reporting = E_ALL & ~E_DEPRECATED & ~E_STRICT' >> ${INSTALL_DIR}/etc/php.ini && \
+    echo 'display_errors = Off' >> ${INSTALL_DIR}/etc/php.ini && \
+    echo 'log_errors = On' >> ${INSTALL_DIR}/etc/php.ini && \
+    echo 'default_charset = UTF-8' >> ${INSTALL_DIR}/etc/php.ini && \
+    echo '' >> ${INSTALL_DIR}/etc/php.ini && \
+    echo '[opcache]' >> ${INSTALL_DIR}/etc/php.ini && \
+    echo 'opcache.enable=1' >> ${INSTALL_DIR}/etc/php.ini && \
+    echo 'opcache.enable_cli=1' >> ${INSTALL_DIR}/etc/php.ini && \
+    echo 'opcache.memory_consumption=128' >> ${INSTALL_DIR}/etc/php.ini && \
+    echo 'opcache.max_accelerated_files=4000' >> ${INSTALL_DIR}/etc/php.ini && \
+    echo '' >> ${INSTALL_DIR}/etc/php.ini && \
+    echo '[Date]' >> ${INSTALL_DIR}/etc/php.ini && \
+    echo 'date.timezone = UTC' >> ${INSTALL_DIR}/etc/php.ini
 
 # Création de la structure finale
 RUN mkdir -p ${INSTALL_DIR}/var/log ${INSTALL_DIR}/var/run ${INSTALL_DIR}/tmp
