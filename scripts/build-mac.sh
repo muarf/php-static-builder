@@ -26,12 +26,18 @@ if [ "$ARCH" = "arm64" ]; then
     export TARGET_ARCH="arm64-apple-darwin"
     export STRIP="strip"
     export PKG_CONFIG_PATH="/opt/homebrew/lib/pkgconfig"
+    export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
+    export CPPFLAGS="-I/opt/homebrew/include"
+    export LDFLAGS="-L/opt/homebrew/lib"
 else
     export CC="clang -arch x86_64"
     export CXX="clang++ -arch x86_64"
     export TARGET_ARCH="x86_64-apple-darwin"
     export STRIP="strip"
     export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig"
+    export PATH="/usr/local/bin:/usr/local/sbin:$PATH"
+    export CPPFLAGS="-I/usr/local/include"
+    export LDFLAGS="-L/usr/local/lib"
 fi
 
 # Création des répertoires

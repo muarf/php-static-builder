@@ -111,10 +111,9 @@ fi
     --enable-embed=no \
     --disable-zend-signals \
     --enable-zend-max-execution-timers \
-    CFLAGS="-Os -ffunction-sections -fdata-sections -fvisibility=hidden -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1 -D_GNU_SOURCE -static" \
-    CXXFLAGS="-Os -ffunction-sections -fdata-sections -fvisibility=hidden -D_GNU_SOURCE -static" \
-    LDFLAGS="-Wl,--gc-sections -Wl,--strip-all -static -static-libgcc -static-libstdc++" \
-    LIBS="-ldl -lpthread"
+    CFLAGS="-Os -ffunction-sections -fdata-sections -fvisibility=hidden -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1 -D_GNU_SOURCE" \
+    CXXFLAGS="-Os -ffunction-sections -fdata-sections -fvisibility=hidden -D_GNU_SOURCE" \
+    LDFLAGS="-Wl,--gc-sections -Wl,--strip-all"
 
 # Compilation
 echo "Building PHP..."
