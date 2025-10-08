@@ -61,7 +61,8 @@ RUN wget -q "https://www.php.net/distributions/php-${PHP_VERSION}.tar.gz" && \
 WORKDIR ${BUILD_DIR}/php-${PHP_VERSION}
 
 # Configuration pour un build 100% statique
-RUN ./configure \
+RUN PKG_CONFIG="pkg-config --static" \
+    ./configure \
     --prefix=${INSTALL_DIR} \
     --disable-all \
     --enable-static \
@@ -103,7 +104,6 @@ RUN ./configure \
     --with-zip \
     --with-zlib \
     --with-openssl \
-    --enable-intl \
     --with-gettext \
     --enable-pcntl \
     --enable-bcmath \
@@ -116,10 +116,9 @@ RUN ./configure \
     --disable-cgi \
     --disable-phpdbg \
     --enable-embed=no \
-    CFLAGS="-Os -ffunction-sections -fdata-sections -static" \
-    CXXFLAGS="-Os -ffunction-sections -fdata-sections -static" \
-    LDFLAGS="-static -Wl,--gc-sections -Wl,--strip-all" \
-    LIBS="-lpthread -ldl"
+    CFLAGS="-Os -ffunction-sections -fdata-sections" \
+    CXXFLAGS="-Os -ffunction-sections -fdata-sections" \
+    LDFLAGS="-static -Wl,--gc-sections -Wl,--strip-all"
 
 # Compilation
 RUN make -j$(nproc)
