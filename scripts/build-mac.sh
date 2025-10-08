@@ -98,7 +98,6 @@ echo "Configuring PHP build for macOS..."
     --with-zlib \
     --with-openssl \
     --with-iconv \
-    --with-gettext \
     --enable-pcntl \
     --enable-bcmath \
     --enable-filter \
