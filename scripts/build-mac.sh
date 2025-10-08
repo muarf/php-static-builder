@@ -25,19 +25,19 @@ if [ "$ARCH" = "arm64" ]; then
     export CXX="clang++ -arch arm64"
     export TARGET_ARCH="arm64-apple-darwin"
     export STRIP="strip"
-    export PKG_CONFIG_PATH="/opt/homebrew/lib/pkgconfig"
+    export PKG_CONFIG_PATH="/opt/homebrew/lib/pkgconfig:/opt/homebrew/opt/bzip2/lib/pkgconfig:/opt/homebrew/opt/icu4c/lib/pkgconfig:/opt/homebrew/opt/openssl/lib/pkgconfig:/opt/homebrew/opt/readline/lib/pkgconfig:/opt/homebrew/opt/sqlite/lib/pkgconfig"
     export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
-    export CPPFLAGS="-I/opt/homebrew/include"
-    export LDFLAGS="-L/opt/homebrew/lib"
+    export CPPFLAGS="-I/opt/homebrew/include -I/opt/homebrew/opt/bzip2/include -I/opt/homebrew/opt/icu4c/include -I/opt/homebrew/opt/openssl/include -I/opt/homebrew/opt/readline/include -I/opt/homebrew/opt/sqlite/include"
+    export LDFLAGS="-L/opt/homebrew/lib -L/opt/homebrew/opt/bzip2/lib -L/opt/homebrew/opt/icu4c/lib -L/opt/homebrew/opt/openssl/lib -L/opt/homebrew/opt/readline/lib -L/opt/homebrew/opt/sqlite/lib"
 else
     export CC="clang -arch x86_64"
     export CXX="clang++ -arch x86_64"
     export TARGET_ARCH="x86_64-apple-darwin"
     export STRIP="strip"
-    export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig"
+    export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:/usr/local/opt/bzip2/lib/pkgconfig:/usr/local/opt/icu4c/lib/pkgconfig:/usr/local/opt/openssl/lib/pkgconfig:/usr/local/opt/readline/lib/pkgconfig:/usr/local/opt/sqlite/lib/pkgconfig"
     export PATH="/usr/local/bin:/usr/local/sbin:$PATH"
-    export CPPFLAGS="-I/usr/local/include"
-    export LDFLAGS="-L/usr/local/lib"
+    export CPPFLAGS="-I/usr/local/include -I/usr/local/opt/bzip2/include -I/usr/local/opt/icu4c/include -I/usr/local/opt/openssl/include -I/usr/local/opt/readline/include -I/usr/local/opt/sqlite/include"
+    export LDFLAGS="-L/usr/local/lib -L/usr/local/opt/bzip2/lib -L/usr/local/opt/icu4c/lib -L/usr/local/opt/openssl/lib -L/usr/local/opt/readline/lib -L/usr/local/opt/sqlite/lib"
 fi
 
 # Création des répertoires
