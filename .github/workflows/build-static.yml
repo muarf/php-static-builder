@@ -1,0 +1,117 @@
+---
+name: Build PHP Static Binary (100% Static with musl)
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'Dockerfile.static'
+      - 'Makefile.static'
+      - '.github/workflows/build-static.yml'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  PHP_VERSION: "8.2.14"
+
+jobs:
+  build-static:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build 100% Static PHP Binary
+        run: |
+          echo "Building 100% static PHP ${{ env.PHP_VERSION }} with musl"
+          make -f Makefile.static build-static
+        env:
+          PHP_VERSION: ${{ env.PHP_VERSION }}
+
+      - name: Test static binary
+        run: |
+          echo "Testing static binary..."
+          make -f Makefile.static test-static
+
+      - name: Create archive
+        run: |
+          cd dist-static
+          tar -czf ../php-static-musl-amd64-linux.tar.gz *
+          cd ..
+          echo "Archive size: $(ls -lh php-static-musl-amd64-linux.tar.gz | awk '{print $5}')"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: php-static-musl-linux-amd64
+          path: php-static-musl-amd64-linux.tar.gz
+          retention-days: 30
+
+  create-release:
+    needs: [build-static]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download binary
+        uses: actions/download-artifact@v4
+        with:
+          name: php-static-musl-linux-amd64
+          path: dist/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.PHP_VERSION }}-static-musl
+          name: PHP ${{ env.PHP_VERSION }} Static Binary (100% Static with musl)
+          body: |
+            ## PHP ${{ env.PHP_VERSION }} - Binaire 100% Statique (musl)
+            
+            ### ✅ Caractéristiques
+            - **100% statique** - Aucune dépendance dynamique
+            - **Compilé avec musl libc** - Plus portable que glibc
+            - **Toutes les extensions incluses** - Voir la liste ci-dessous
+            - **Optimisé pour la taille** - Stripped et optimisé
+            
+            ### 📦 Extensions incluses
+            - **Core**: opcache, session, phar
+            - **Base de données**: mysqlnd, pdo, pdo-mysql, pdo-sqlite, mysqli, sqlite3
+            - **XML**: dom, xml, simplexml, xmlreader, xmlwriter, libxml
+            - **Compression**: bz2, zip, zlib
+            - **Réseau**: curl, ftp, sockets, openssl
+            - **Chaînes**: mbstring, iconv, gettext
+            - **Images**: (gd désactivé pour le statique)
+            - **Système**: posix, pcntl, shmop, sysvmsg, sysvsem, sysvshm
+            - **Autres**: calendar, ctype, exif, fileinfo, filter, tokenizer, bcmath, intl, readline
+            
+            ### 🚀 Utilisation
+            ```bash
+            # Télécharger et extraire
+            wget https://github.com/muarf/php-static-builder/releases/download/v${{ env.PHP_VERSION }}-static-musl/php-static-musl-amd64-linux.tar.gz
+            tar -xzf php-static-musl-amd64-linux.tar.gz
+            
+            # Tester
+            ./php --version
+            ./php -m
+            
+            # Vérifier que c'est statique
+            ldd ./php  # Doit afficher "not a dynamic executable"
+            ```
+            
+            ### 🔍 Vérification
+            Le binaire est **100% statique** et ne nécessite **aucune bibliothèque externe**.
+            Il peut être copié sur n'importe quel système Linux (même sans libc installée).
+          files: |
+            dist/php-static-musl-amd64-linux.tar.gz
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

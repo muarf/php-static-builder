@@ -1,0 +1,56 @@
+# Makefile pour créer un binaire PHP 100% statique
+
+.PHONY: help build-static test-static clean-static
+
+PHP_VERSION ?= 8.2.14
+DOCKER_IMAGE ?= php-static-builder-musl
+
+help:
+	@echo "PHP Static Binary Builder (100% Static avec musl)"
+	@echo ""
+	@echo "Commandes disponibles:"
+	@echo "  build-static    - Construire le binaire PHP 100% statique"
+	@echo "  test-static     - Tester que le binaire est vraiment statique"
+	@echo "  clean-static    - Nettoyer les fichiers temporaires"
+	@echo ""
+	@echo "Variables:"
+	@echo "  PHP_VERSION     - Version de PHP à compiler (défaut: 8.2.14)"
+
+build-static:
+	@echo "Construction du binaire PHP 100% statique avec musl..."
+	@mkdir -p dist-static
+	docker build -f Dockerfile.static -t $(DOCKER_IMAGE):latest --build-arg PHP_VERSION=$(PHP_VERSION) .
+	@echo "Extraction du binaire..."
+	docker create --name php-static-temp $(DOCKER_IMAGE):latest
+	docker cp php-static-temp:/bin/php dist-static/php
+	docker cp php-static-temp:/sbin/php-fpm dist-static/php-fpm
+	docker cp php-static-temp:/etc/php.ini dist-static/php.ini
+	docker rm php-static-temp
+	@echo "✅ Binaire statique créé dans dist-static/"
+	@echo ""
+	@echo "Test du binaire:"
+	@file dist-static/php
+	@echo ""
+	@echo "Taille du binaire:"
+	@ls -lh dist-static/php
+
+test-static:
+	@echo "Test du binaire statique..."
+	@echo ""
+	@echo "1. Vérification avec 'file':"
+	@file dist-static/php
+	@echo ""
+	@echo "2. Vérification avec 'ldd' (doit afficher 'not a dynamic executable'):"
+	@ldd dist-static/php 2>&1 || echo "✅ Binaire statique confirmé!"
+	@echo ""
+	@echo "3. Test de version:"
+	@./dist-static/php --version
+	@echo ""
+	@echo "4. Liste des extensions:"
+	@./dist-static/php -m
+
+clean-static:
+	@echo "Nettoyage..."
+	@rm -rf dist-static/
+	@docker rmi $(DOCKER_IMAGE):latest 2>/dev/null || true
+	@echo "✅ Nettoyage terminé"

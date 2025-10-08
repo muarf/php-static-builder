@@ -1,0 +1,198 @@
+# Dockerfile pour créer un binaire PHP 100% statique avec musl
+FROM alpine:3.19 as builder
+
+ARG PHP_VERSION=8.2.14
+
+# Installation des dépendances de build
+RUN apk add --no-cache \
+    autoconf \
+    automake \
+    libtool \
+    pkgconf \
+    gcc \
+    g++ \
+    make \
+    cmake \
+    wget \
+    curl \
+    bison \
+    re2c \
+    linux-headers \
+    musl-dev \
+    openssl-dev \
+    openssl-libs-static \
+    curl-dev \
+    curl-static \
+    libxml2-dev \
+    libxml2-static \
+    sqlite-dev \
+    sqlite-static \
+    zlib-dev \
+    zlib-static \
+    bzip2-dev \
+    bzip2-static \
+    readline-dev \
+    readline-static \
+    libpng-dev \
+    libpng-static \
+    libjpeg-turbo-dev \
+    libjpeg-turbo-static \
+    freetype-dev \
+    freetype-static \
+    oniguruma-dev \
+    oniguruma-static \
+    libzip-dev \
+    libzip-static \
+    icu-dev \
+    icu-static \
+    libffi-dev \
+    libffi-static \
+    gettext-dev \
+    gettext-static
+
+ENV BUILD_DIR=/tmp/php-build
+ENV INSTALL_DIR=/tmp/php-static
+
+# Création des répertoires
+RUN mkdir -p ${BUILD_DIR} ${INSTALL_DIR}
+
+# Téléchargement de PHP
+WORKDIR ${BUILD_DIR}
+RUN wget -q "https://www.php.net/distributions/php-${PHP_VERSION}.tar.gz" && \
+    tar -xzf "php-${PHP_VERSION}.tar.gz"
+
+WORKDIR ${BUILD_DIR}/php-${PHP_VERSION}
+
+# Configuration pour un build 100% statique
+RUN ./configure \
+    --prefix=${INSTALL_DIR} \
+    --disable-all \
+    --enable-static \
+    --disable-shared \
+    --enable-cli \
+    --enable-fpm \
+    --with-config-file-path=${INSTALL_DIR}/etc \
+    --with-config-file-scan-dir=${INSTALL_DIR}/etc/conf.d \
+    --enable-phar \
+    --enable-session \
+    --enable-opcache \
+    --enable-mysqlnd \
+    --enable-pdo \
+    --with-pdo-mysql=mysqlnd \
+    --with-pdo-sqlite \
+    --enable-dom \
+    --enable-xml \
+    --enable-simplexml \
+    --enable-xmlreader \
+    --enable-xmlwriter \
+    --with-libxml \
+    --with-bz2 \
+    --enable-calendar \
+    --enable-ctype \
+    --with-curl \
+    --enable-exif \
+    --enable-fileinfo \
+    --enable-ftp \
+    --enable-mbstring \
+    --with-mysqli=mysqlnd \
+    --enable-posix \
+    --with-readline \
+    --enable-shmop \
+    --enable-sockets \
+    --with-sqlite3 \
+    --enable-sysvmsg \
+    --enable-sysvsem \
+    --enable-sysvshm \
+    --with-zip \
+    --with-zlib \
+    --with-openssl \
+    --enable-intl \
+    --with-gettext \
+    --enable-pcntl \
+    --enable-bcmath \
+    --enable-filter \
+    --enable-tokenizer \
+    --enable-zts=no \
+    --disable-debug \
+    --disable-rpath \
+    --without-pear \
+    --disable-cgi \
+    --disable-phpdbg \
+    --enable-embed=no \
+    CFLAGS="-Os -ffunction-sections -fdata-sections -static" \
+    CXXFLAGS="-Os -ffunction-sections -fdata-sections -static" \
+    LDFLAGS="-static -Wl,--gc-sections -Wl,--strip-all" \
+    LIBS="-lpthread -ldl"
+
+# Compilation
+RUN make -j$(nproc)
+
+# Installation
+RUN make install
+
+# Strip des binaires pour réduire la taille
+RUN strip --strip-all ${INSTALL_DIR}/bin/php && \
+    strip --strip-all ${INSTALL_DIR}/sbin/php-fpm
+
+# Création de la configuration PHP
+RUN mkdir -p ${INSTALL_DIR}/etc/conf.d && \
+    cat > ${INSTALL_DIR}/etc/php.ini << 'EOF'
+[PHP]
+engine = On
+short_open_tag = Off
+precision = 14
+output_buffering = 4096
+zlib.output_compression = Off
+implicit_flush = Off
+serialize_precision = -1
+disable_functions =
+disable_classes =
+zend.enable_gc = On
+zend.exception_ignore_args = On
+expose_php = Off
+max_execution_time = 30
+max_input_time = 60
+memory_limit = 128M
+error_reporting = E_ALL & ~E_DEPRECATED & ~E_STRICT
+display_errors = Off
+display_startup_errors = Off
+log_errors = On
+variables_order = "GPCS"
+request_order = "GP"
+register_argc_argv = Off
+auto_globals_jit = On
+post_max_size = 8M
+default_mimetype = "text/html"
+default_charset = "UTF-8"
+file_uploads = On
+upload_max_filesize = 2M
+max_file_uploads = 20
+allow_url_fopen = On
+allow_url_include = Off
+default_socket_timeout = 60
+
+[opcache]
+opcache.enable=1
+opcache.enable_cli=1
+opcache.memory_consumption=128
+opcache.interned_strings_buffer=8
+opcache.max_accelerated_files=4000
+opcache.revalidate_freq=2
+opcache.fast_shutdown=1
+
+[Date]
+date.timezone = UTC
+
+[mbstring]
+mbstring.language = neutral
+mbstring.internal_encoding = UTF-8
+EOF
+
+# Création de la structure finale
+RUN mkdir -p ${INSTALL_DIR}/var/log ${INSTALL_DIR}/var/run ${INSTALL_DIR}/tmp
+
+# Stage final - copie uniquement les binaires
+FROM scratch
+COPY --from=builder /tmp/php-static /
+
+# Le binaire est maintenant 100% statique et autonome
