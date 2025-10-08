@@ -43,6 +43,11 @@ RUN apt-get update && apt-get install -y \
     libc6-dev \
     libgcc-s1 \
     zlib1g-dev \
+    libbz2-dev \
+    libicu-dev \
+    libffi-dev \
+    libgd-dev \
+    gettext \
     && rm -rf /var/lib/apt/lists/*
 
 # Installation des outils de cross-compilation si nécessaire

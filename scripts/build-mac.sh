@@ -17,7 +17,7 @@ echo "=========================================="
 # Installation des dépendances
 echo "Installing dependencies..."
 brew install autoconf automake libtool pkg-config
-brew install libxml2 openssl zlib
+brew install libxml2 openssl zlib bzip2 icu4c libffi gd gettext curl readline sqlite
 
 # Configuration selon l'architecture
 if [ "$ARCH" = "arm64" ]; then
