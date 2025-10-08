@@ -87,7 +87,6 @@ echo "Configuring PHP build for macOS..."
     --enable-mbstring \
     --with-mysqli=mysqlnd \
     --enable-posix \
-    --with-readline \
     --enable-shmop \
     --enable-sockets \
     --with-sqlite3 \
