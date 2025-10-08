@@ -93,7 +93,6 @@ echo "Configuring PHP build for macOS..."
     --enable-sysvmsg \
     --enable-sysvsem \
     --enable-sysvshm \
-    --with-zip \
     --with-zlib \
     --with-openssl \
     --enable-pcntl \

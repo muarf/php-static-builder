@@ -83,7 +83,6 @@ RUN ./configure \
     --enable-xmlreader \
     --enable-xmlwriter \
     --with-libxml \
-    --with-bz2 \
     --enable-calendar \
     --enable-ctype \
     --enable-exif \
