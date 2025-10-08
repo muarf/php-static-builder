@@ -61,9 +61,7 @@ RUN wget -q "https://www.php.net/distributions/php-${PHP_VERSION}.tar.gz" && \
 WORKDIR ${BUILD_DIR}/php-${PHP_VERSION}
 
 # Configuration pour un build 100% statique
-RUN LIBS="-lbz2 -lz -lssl -lcrypto -lsqlite3 -lxml2 -llzma -lreadline -lncursesw -lpthread -ldl -lm" \
-    PKG_CONFIG="pkg-config --static" \
-    ./configure \
+RUN ./configure \
     --prefix=${INSTALL_DIR} \
     --disable-all \
     --enable-static \
@@ -116,11 +114,10 @@ RUN LIBS="-lbz2 -lz -lssl -lcrypto -lsqlite3 -lxml2 -llzma -lreadline -lncursesw
     --disable-phpdbg \
     --enable-embed=no \
     CFLAGS="-Os -ffunction-sections -fdata-sections" \
-    CXXFLAGS="-Os -ffunction-sections -fdata-sections" \
-    LDFLAGS="-static -Wl,--gc-sections -Wl,--strip-all"
+    CXXFLAGS="-Os -ffunction-sections -fdata-sections"
 
-# Compilation
-RUN make -j$(nproc)
+# Compilation avec linking statique
+RUN make -j$(nproc) LDFLAGS="-all-static" EXTRA_LIBS="-lbz2 -lz -lssl -lcrypto -lsqlite3 -lxml2 -llzma -lreadline -lncursesw -lpthread -ldl -lm"
 
 # Installation
 RUN make install
