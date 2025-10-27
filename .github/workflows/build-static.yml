@@ -46,7 +46,7 @@ jobs:
           echo "Archive size: $(ls -lh php-static-musl-amd64-linux.tar.gz | awk '{print $5}')"
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: php-static-musl-linux-amd64
           path: php-static-musl-amd64-linux.tar.gz
